@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  django:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./:/usr/src/app/
+    ports:
+      - "8000:8000"
+    depends_on:
+      - pgdb
+      - redis
+      - celery
+    restart: always
+
+  pgdb:
+    image: postgres
+    restart: always
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=1234
+      - POSTGRES_DB=diploma
+
+  celery:
+    build: .
+    restart: always
+    command: celery -A my_diplom worker -l info
+    depends_on:
+      - redis
+
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+volumes:
+   postgres_data:
